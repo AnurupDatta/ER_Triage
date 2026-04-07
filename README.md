@@ -21,6 +21,8 @@ An OpenEnv environment where an AI agent triages emergency room patients using t
 
 ## Deployed Environment
 
+**Live Space:** [https://huggingface.co/spaces/hawkaii/er_triage](https://huggingface.co/spaces/hawkaii/er_triage)
+
 ![HF Spaces](pics/environment_huggingface_spaces.png)
 
 ## Inference Logs
