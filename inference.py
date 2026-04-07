@@ -5,7 +5,7 @@ MANDATORY ENV VARS:
     API_BASE_URL   The API endpoint for the LLM.
     MODEL_NAME     The model identifier to use for inference.
     HF_TOKEN       Your Hugging Face / API key.
-    IMAGE_NAME     Docker image name (if using from_docker_image).
+    LOCAL_IMAGE_NAME  Docker image name (optional, if using from_docker_image).
 
 STDOUT FORMAT:
     [START] task=<task_name> env=er_triage model=<model_name>
@@ -34,8 +34,8 @@ except ImportError:
     from .models import ERTriageAction, ERTriageObservation
 
 # ── Environment Variables ──────────────────────────────────────────────────────
-IMAGE_NAME = os.getenv("IMAGE_NAME")
-API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
+LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
+HF_TOKEN = os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 ENV_URL = os.getenv("ENV_URL", "https://hawkaii-er-triage.hf.space")
@@ -183,15 +183,15 @@ def get_llm_action(client: OpenAI, obs: ERTriageObservation, step: int, history:
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 async def main() -> None:
-    llm_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    llm_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
     config = TASK_CONFIG.get(TASK_NAME, TASK_CONFIG["single_triage"])
     num_patients = config["num_patients"]
     max_steps = config["max_steps"]
     MAX_TOTAL_REWARD = num_patients * MAX_REWARD_PER_PATIENT
 
-    if IMAGE_NAME:
-        env = await ERTriageEnv.from_docker_image(IMAGE_NAME)
+    if LOCAL_IMAGE_NAME:
+        env = await ERTriageEnv.from_docker_image(LOCAL_IMAGE_NAME)
     else:
         env = ERTriageEnv(base_url=ENV_URL)
 
