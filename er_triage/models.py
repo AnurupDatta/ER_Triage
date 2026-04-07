@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Literal
 from openenv.core.env_server.types import Action, Observation, State
 from pydantic import Field
 
+
 class ERTriageAction(Action):
     """
     Action for the ER Triage environment.
@@ -28,6 +29,7 @@ class ERTriageAction(Action):
         "", description="The agent's reasoning for taking this action."
     )
 
+
 class ERTriageObservation(Observation):
     """
     Observation from the ER Triage environment.
@@ -41,6 +43,7 @@ class ERTriageObservation(Observation):
     available_actions: List[str] = Field(
         default_factory=list, description="What the agent can do next."
     )
+
 
 class ERTriageState(State):
     """
