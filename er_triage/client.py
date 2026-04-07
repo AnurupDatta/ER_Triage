@@ -11,11 +11,9 @@ from typing import Dict, Any
 from openenv.core import EnvClient
 from openenv.core.client_types import StepResult
 
-# Use a try-except block for robust imports
 try:
     from .models import ERTriageAction, ERTriageObservation, ERTriageState
 except ImportError:
-    # This path is for when the client is used outside the package structure
     from models import ERTriageAction, ERTriageObservation, ERTriageState
 
 
@@ -25,11 +23,7 @@ class ERTriageEnv(
     """
     Client for the ER Triage Environment.
 
-    This client connects to the environment server via WebSockets, allowing for
-    efficient, stateful interactions.
-
     Example:
-        >>> # Connect to a running server
         >>> with ERTriageEnv(base_url="http://localhost:8000") as client:
         ...     result = client.reset()
         ...     print(result.observation.chief_complaint)
@@ -40,15 +34,6 @@ class ERTriageEnv(
     """
 
     def _step_payload(self, action: ERTriageAction) -> Dict[str, Any]:
-        """
-        Convert ERTriageAction to a JSON payload for the step message.
-
-        Args:
-            action: The ERTriageAction instance.
-
-        Returns:
-            A dictionary representation suitable for JSON encoding.
-        """
         payload = {
             "action_type": action.action_type,
             "reasoning": action.reasoning,
@@ -60,15 +45,6 @@ class ERTriageEnv(
         return payload
 
     def _parse_result(self, payload: Dict[str, Any]) -> StepResult[ERTriageObservation]:
-        """
-        Parse the server's JSON response into a StepResult[ERTriageObservation].
-
-        Args:
-            payload: The JSON response data from the server.
-
-        Returns:
-            A StepResult containing the parsed observation.
-        """
         obs_data = payload.get("observation", {})
         observation = ERTriageObservation(
             patient_id=obs_data.get("patient_id", ""),
@@ -81,7 +57,6 @@ class ERTriageEnv(
             reward=payload.get("reward"),
             metadata=obs_data.get("metadata", {}),
         )
-
         return StepResult(
             observation=observation,
             reward=payload.get("reward"),
@@ -89,15 +64,6 @@ class ERTriageEnv(
         )
 
     def _parse_state(self, payload: Dict[str, Any]) -> ERTriageState:
-        """
-        Parse the server's JSON response into an ERTriageState object.
-
-        Args:
-            payload: The JSON response from a state request.
-
-        Returns:
-            An ERTriageState object.
-        """
         return ERTriageState(
             episode_id=payload.get("episode_id"),
             step_count=payload.get("step_count", 0),

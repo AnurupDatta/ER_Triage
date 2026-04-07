@@ -1,18 +1,7 @@
-# OpenEnv Specification v1
 spec_version: 1
-
-# The name of your environment
 name: er_triage
-
-# The type of OpenEnv project, 'space' is used for deployable environments
 type: space
-
-# The runtime framework used by the server
 runtime: fastapi
-
-# The path to the FastAPI application instance, relative to the project root
-# Format: <module_path>:<app_variable_name>
-app: er_triage.server.app:app
-
-# The default port the server will run on
+app: server.app:app
 port: 8000
+
