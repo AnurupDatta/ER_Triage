@@ -13,7 +13,11 @@ tags:
 
 # ER Triage Environment
 
-A simple test environment that echoes back messages. Perfect for testing the env APIs as well as demonstrating environment usage patterns.
+An OpenEnv environment where an AI agent triages emergency room patients using the Emergency Severity Index (ESI) protocol. The agent must gather information (vitals, history) and assign the correct priority level, balancing speed and accuracy.
+
+## Architecture
+
+![Architecture](architecture.png)
 
 ## Quick Start
 
@@ -240,18 +244,23 @@ uvicorn server.app:app --reload
 ## Project Structure
 
 ```
-er_triage/
-├── .dockerignore         # Docker build exclusions
+ER_Triage/
 ├── __init__.py            # Module exports
 ├── README.md              # This file
+├── architecture.png       # Architecture diagram
 ├── openenv.yaml           # OpenEnv manifest
 ├── pyproject.toml         # Project metadata and dependencies
 ├── uv.lock                # Locked dependencies (generated)
 ├── client.py              # ERTriageEnv client
 ├── models.py              # Action and Observation models
+├── inference.py           # Rule-based agent entry point
+├── data/
+│   ├── __init__.py
+│   └── patients.py        # Patient dataset
 └── server/
     ├── __init__.py        # Server module exports
     ├── er_triage_environment.py  # Core environment logic
     ├── app.py             # FastAPI application (HTTP + WebSocket endpoints)
+    ├── requirements.txt   # Server dependencies
     └── Dockerfile         # Container image definition
 ```

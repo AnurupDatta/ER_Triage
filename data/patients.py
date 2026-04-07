@@ -20,7 +20,7 @@ PATIENTS = [
         "demographics": {"age": 65, "gender": "Male"},
         "ground_truth_esi": 1,
         "ground_truth_priority": "critical",
-        "ideal_steps": 1, # Should be triaged immediately based on vitals
+        "ideal_steps": 1,
     },
     {
         "patient_id": "P002",
@@ -30,7 +30,7 @@ PATIENTS = [
         "demographics": {"age": 72, "gender": "Female"},
         "ground_truth_esi": 2,
         "ground_truth_priority": "critical",
-        "ideal_steps": 2, # Vitals suggest problem, question about blood sugar would confirm
+        "ideal_steps": 2,
     },
     {
         "patient_id": "P003",
@@ -38,7 +38,7 @@ PATIENTS = [
         "vitals": {"hr": 115, "bp": "110/70", "rr": 20, "temp": 37.2, "spo2": 98},
         "history": "None",
         "demographics": {"age": 34, "gender": "Male"},
-        "ground_truth_esi": 2, # High risk due to severe pain
+        "ground_truth_esi": 2,
         "ground_truth_priority": "critical",
         "ideal_steps": 2,
     },
@@ -50,7 +50,7 @@ PATIENTS = [
         "vitals": {"hr": 80, "bp": "130/85", "rr": 18, "temp": 37.1, "spo2": 99},
         "history": "On blood thinners",
         "demographics": {"age": 78, "gender": "Female"},
-        "ground_truth_esi": 3, # Needs multiple resources (CT scan, labs) due to fall + blood thinners
+        "ground_truth_esi": 3,
         "ground_truth_priority": "urgent",
         "ideal_steps": 3,
     },
@@ -60,7 +60,7 @@ PATIENTS = [
         "vitals": {"hr": 95, "bp": "120/80", "rr": 20, "temp": 38.8, "spo2": 95},
         "history": "Asthma",
         "demographics": {"age": 45, "gender": "Male"},
-        "ground_truth_esi": 3, # Needs chest x-ray and labs
+        "ground_truth_esi": 3,
         "ground_truth_priority": "urgent",
         "ideal_steps": 2,
     },
@@ -72,7 +72,7 @@ PATIENTS = [
         "vitals": {"hr": 70, "bp": "110/70", "rr": 16, "temp": 37.5, "spo2": 99},
         "history": "None",
         "demographics": {"age": 25, "gender": "Female"},
-        "ground_truth_esi": 5, # No resources needed
+        "ground_truth_esi": 5,
         "ground_truth_priority": "non-urgent",
         "ideal_steps": 1,
     },
@@ -82,7 +82,7 @@ PATIENTS = [
         "vitals": {"hr": 85, "bp": "120/80", "rr": 18, "temp": 37.0, "spo2": 100},
         "history": "None",
         "demographics": {"age": 30, "gender": "Male"},
-        "ground_truth_esi": 4, # Needs one resource (x-ray)
+        "ground_truth_esi": 4,
         "ground_truth_priority": "non-urgent",
         "ideal_steps": 2,
     },
@@ -95,5 +95,40 @@ PATIENTS = [
         "ground_truth_esi": 5,
         "ground_truth_priority": "non-urgent",
         "ideal_steps": 1,
-    }
+    },
+
+    # TRICKY / DIFFERENTIAL (for hard task)
+    {
+        "patient_id": "P009",
+        "chief_complaint": "Mild headache, feeling a bit tired",
+        "vitals": {"hr": 105, "bp": "85/55", "rr": 24, "temp": 38.9, "spo2": 91},
+        "history": "Recent travel to tropical region, no prior medical issues",
+        "demographics": {"age": 28, "gender": "Female"},
+        "ground_truth_esi": 2,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
+    {
+        "patient_id": "P010",
+        "chief_complaint": "Stomach ache after eating",
+        "vitals": {"hr": 130, "bp": "80/50", "rr": 26, "temp": 37.1, "spo2": 93},
+        "history": "Known aortic aneurysm",
+        "demographics": {"age": 70, "gender": "Male"},
+        "ground_truth_esi": 1,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
+    {
+        "patient_id": "P011",
+        "chief_complaint": "Feeling anxious, heart racing",
+        "vitals": {"hr": 88, "bp": "125/80", "rr": 18, "temp": 37.0, "spo2": 99},
+        "history": "Generalized anxiety disorder, on SSRIs",
+        "demographics": {"age": 32, "gender": "Female"},
+        "ground_truth_esi": 4,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
 ]

@@ -31,10 +31,15 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
 
     The agent's goal is to correctly assign an ESI priority level to patients
     in a sequential manner, balancing speed and accuracy.
+
+    Tasks:
+        - single_triage: Triage 1 patient (easy)
+        - batch_triage: Triage 3 patients sequentially (medium)
+        - differential_triage: Triage 1 tricky patient with misleading symptoms (hard)
     """
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
-    def __init__(self, task: str = "Single Triage"):
+    def __init__(self, task: str = "single_triage"):
         """Initialize the ER Triage environment."""
         self._task = task
         self._state: ERTriageState = self._create_initial_state()
@@ -55,12 +60,17 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
         """Reset the environment to start a new episode."""
         self._state = self._create_initial_state()
 
-        if self._task == "Single Triage":
-            patient_sample = random.choice(PATIENTS)
-            self._state.patient_queue = [patient_sample]
+        if self._task == "batch_triage":
+            self._state.patient_queue = random.sample(PATIENTS, min(3, len(PATIENTS)))
+        elif self._task == "differential_triage":
+            tricky = [p for p in PATIENTS if p.get("tricky", False)]
+            if tricky:
+                self._state.patient_queue = [random.choice(tricky)]
+            else:
+                self._state.patient_queue = [random.choice(PATIENTS)]
         else:
-            patient_sample = random.choice(PATIENTS)
-            self._state.patient_queue = [patient_sample]
+            # single_triage (default)
+            self._state.patient_queue = [random.choice(PATIENTS)]
 
         self._state.current_patient_index = 0
         self._state.steps_taken_for_patient = 0
@@ -101,10 +111,12 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
         if action.action_type == "request_vitals":
             obs.vitals = patient["vitals"]
             obs.available_actions = ["ask_question", "assign_priority"]
+            reward = 0.2
 
         elif action.action_type == "ask_question":
             obs.question_answer = f"Patient responds to '{action.question}'. History: {patient.get('history', 'N/A')}"
             obs.available_actions = ["assign_priority"]
+            reward = 0.1
 
         elif action.action_type == "assign_priority":
             reward, correct = self._grade_priority(action.priority, patient)
@@ -131,16 +143,14 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
         return obs
 
     def _grade_priority(self, assigned_priority: str, patient: Dict) -> Tuple[float, bool]:
-        """Grades the assigned priority and calculates the reward."""
+        """Grades the assigned priority. Returns reward in [0, 0.7]."""
         ground_truth = patient["ground_truth_priority"]
         correct = assigned_priority == ground_truth
 
         if correct:
-            reward = 1.0
-            if self._state.steps_taken_for_patient <= patient["ideal_steps"]:
-                reward += 0.1
+            reward = 0.7
         else:
-            reward = -1.0
+            reward = 0.0
 
         return reward, correct
 
