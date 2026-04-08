@@ -40,6 +40,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 ENV_URL = os.getenv("ENV_URL", "https://hawkaii-er-triage.hf.space")
+TASK_NAME = os.getenv("TASK_NAME")  # None = run all tasks
 BENCHMARK = "er_triage"
 
 # ── Task Configuration ─────────────────────────────────────────────────────────
@@ -184,12 +185,12 @@ def get_llm_action(client: OpenAI, obs: ERTriageObservation, step: int, history:
 
 
 # ── Run a single task ─────────────────────────────────────────────────────────
-async def run_task(task_name: str, env: ERTriageEnv, llm_client: OpenAI) -> float:
+async def run_task(llm_client: OpenAI, env: ERTriageEnv, task_name: str) -> float:
     """Run one full episode for a task. Returns the final score."""
     config = TASK_CONFIG.get(task_name, TASK_CONFIG["single_triage"])
     num_patients = config["num_patients"]
     max_steps = config["max_steps"]
-    MAX_TOTAL_REWARD = num_patients * MAX_REWARD_PER_PATIENT
+    max_total_reward = num_patients * MAX_REWARD_PER_PATIENT
 
     history: List[str] = []
     rewards: List[float] = []
@@ -241,7 +242,7 @@ async def run_task(task_name: str, env: ERTriageEnv, llm_client: OpenAI) -> floa
                 if done:
                     break
 
-        score = sum(rewards) / MAX_TOTAL_REWARD if MAX_TOTAL_REWARD > 0 else 0.0
+        score = sum(rewards) / max_total_reward if max_total_reward > 0 else 0.0
         # Clamp to open interval (0, 1) — validator requires strictly between 0 and 1
         eps = 1e-6
         score = min(max(score, eps), 1.0 - eps)
@@ -262,12 +263,13 @@ async def main() -> None:
     else:
         env = ERTriageEnv(base_url=ENV_URL)
 
+    tasks_to_run = [TASK_NAME] if TASK_NAME else TASKS
     scores: Dict[str, float] = {}
 
     try:
-        for task_name in TASKS:
+        for task_name in tasks_to_run:
             try:
-                score = await run_task(task_name, env, llm_client)
+                score = await run_task(llm_client, env, task_name)
                 scores[task_name] = score
             except Exception as exc:
                 print(f"[ERROR] task={task_name} error={exc}", flush=True)
