@@ -22,6 +22,7 @@ import asyncio
 import json
 import os
 import textwrap
+import time
 from typing import Dict, List, Optional
 
 from openai import OpenAI
@@ -39,10 +40,11 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 ENV_URL = os.getenv("ENV_URL", "https://hawkaii-er-triage.hf.space")
-TASK_NAME = os.getenv("TASK_NAME", "single_triage")
 BENCHMARK = "er_triage"
 
 # ── Task Configuration ─────────────────────────────────────────────────────────
+TASKS = ["single_triage", "batch_triage", "differential_triage"]
+
 TASK_CONFIG: Dict[str, Dict] = {
     "single_triage":       {"num_patients": 1, "max_steps": 4},
     "batch_triage":        {"num_patients": 3, "max_steps": 12},
@@ -181,19 +183,13 @@ def get_llm_action(client: OpenAI, obs: ERTriageObservation, step: int, history:
         return ERTriageAction(action_type="request_vitals", reasoning=f"LLM error fallback: {exc}")
 
 
-# ── Main ───────────────────────────────────────────────────────────────────────
-async def main() -> None:
-    llm_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
-
-    config = TASK_CONFIG.get(TASK_NAME, TASK_CONFIG["single_triage"])
+# ── Run a single task ─────────────────────────────────────────────────────────
+async def run_task(task_name: str, env: ERTriageEnv, llm_client: OpenAI) -> float:
+    """Run one full episode for a task. Returns the final score."""
+    config = TASK_CONFIG.get(task_name, TASK_CONFIG["single_triage"])
     num_patients = config["num_patients"]
     max_steps = config["max_steps"]
     MAX_TOTAL_REWARD = num_patients * MAX_REWARD_PER_PATIENT
-
-    if LOCAL_IMAGE_NAME:
-        env = await ERTriageEnv.from_docker_image(LOCAL_IMAGE_NAME)
-    else:
-        env = ERTriageEnv(base_url=ENV_URL)
 
     history: List[str] = []
     rewards: List[float] = []
@@ -201,11 +197,11 @@ async def main() -> None:
     score = 0.0
     success = False
 
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
+    log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
 
     try:
         for patient_idx in range(num_patients):
-            result = await env.reset()
+            result = await env.reset(params={"task": task_name})
             obs = result.observation
             done = result.done
             patient_history: List[str] = []
@@ -229,7 +225,6 @@ async def main() -> None:
                     q = (action.question or "")[:50]
                     action_str = f"ask_question('{q}')"
 
-                # For batch: only report done=true on the very last patient
                 is_final_done = done and (patient_idx == num_patients - 1)
 
                 log_step(
@@ -253,11 +248,43 @@ async def main() -> None:
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     finally:
+        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+
+    return score
+
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+async def main() -> None:
+    llm_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+
+    if LOCAL_IMAGE_NAME:
+        env = await ERTriageEnv.from_docker_image(LOCAL_IMAGE_NAME)
+    else:
+        env = ERTriageEnv(base_url=ENV_URL)
+
+    scores: Dict[str, float] = {}
+
+    try:
+        for task_name in TASKS:
+            try:
+                score = await run_task(task_name, env, llm_client)
+                scores[task_name] = score
+            except Exception as exc:
+                print(f"[ERROR] task={task_name} error={exc}", flush=True)
+                scores[task_name] = 0.0
+            time.sleep(1)
+
+        print(json.dumps({
+            "event": "[SUMMARY]",
+            "scores": scores,
+            "average": round(sum(scores.values()) / len(scores), 4),
+        }), flush=True)
+
+    finally:
         try:
             await env.close()
         except Exception as e:
             print(f"[DEBUG] env.close() error: {e}", flush=True)
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
 
 if __name__ == "__main__":

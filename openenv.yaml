@@ -1,7 +1,83 @@
 spec_version: 1
 name: er_triage
+version: "1.0.0"
+description: >
+  ER Triage environment for AI agent training.
+  An agent triages emergency room patients using the Emergency Severity Index (ESI),
+  balancing speed and accuracy across varying difficulty levels.
+
+author: "Team Attention Seekers"
+tags:
+  - openenv
+  - healthcare
+  - triage
+  - real-world
+
 type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
 
+tasks:
+  - id: single_triage
+    description: "Triage 1 patient using ESI protocol"
+    difficulty: easy
+    max_attempts: 4
+    scoring: "0.0-1.0 partial credit"
+
+  - id: batch_triage
+    description: "Triage 3 patients sequentially"
+    difficulty: medium
+    max_attempts: 12
+    scoring: "0.0-1.0 partial credit"
+
+  - id: differential_triage
+    description: "Triage 1 tricky patient with misleading symptoms"
+    difficulty: hard
+    max_attempts: 4
+    scoring: "0.0-1.0 partial credit"
+
+observation_space:
+  patient_id:         "string — current patient identifier"
+  chief_complaint:    "string — patient's presenting complaint"
+  vitals:             "dict — HR, BP, RR, Temp, SpO2 (after request_vitals)"
+  history:            "string — patient medical history"
+  question_answer:    "string — response to agent's question"
+  available_actions:  "list — actions the agent can take next"
+  reward:             "float — reward from last action"
+  done:               "bool — whether episode has ended"
+
+action_space:
+  action_type:  "string (required) — request_vitals | ask_question | assign_priority"
+  question:     "string (optional) — question to ask the patient"
+  priority:     "string (optional) — critical | urgent | non-urgent"
+  reasoning:    "string — agent's reasoning for the action"
+
+reward:
+  type: continuous
+  range: [0.0, 1.0]
+  shaping:
+    - "+0.20 for requesting vitals"
+    - "+0.10 for asking a clarifying question"
+    - "+0.70 for correct priority assignment"
+    - "+0.00 for incorrect priority assignment"
+
+endpoints:
+  - path: /reset
+    method: POST
+    description: Start a new episode
+  - path: /step
+    method: POST
+    description: Submit an action
+  - path: /state
+    method: GET
+    description: Get current episode state
+  - path: /tasks
+    method: GET
+    description: List all tasks with action schema
+  - path: /grader
+    method: POST
+    description: Grade a priority assignment for a patient
+  - path: /health
+    method: GET
+    description: Health check

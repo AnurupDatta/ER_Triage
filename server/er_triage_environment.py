@@ -56,8 +56,10 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
             bias_log=[],
         )
 
-    def reset(self) -> ERTriageObservation:
+    def reset(self, task: str = None, **kwargs) -> ERTriageObservation:
         """Reset the environment to start a new episode."""
+        if task:
+            self._task = task
         self._state = self._create_initial_state()
 
         if self._task == "batch_triage":

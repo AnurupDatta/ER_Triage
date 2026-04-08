@@ -52,6 +52,78 @@ app = create_app(
 )
 
 
+# ── Task & Grader Definitions ────────────────────────────────────────────────
+
+TASKS = [
+    {
+        "id": "single_triage",
+        "description": "Triage 1 patient using ESI protocol",
+        "difficulty": "easy",
+        "max_attempts": 4,
+        "scoring": "0.0-1.0 partial credit",
+        "action_schema": ERTriageAction.model_json_schema(),
+    },
+    {
+        "id": "batch_triage",
+        "description": "Triage 3 patients sequentially",
+        "difficulty": "medium",
+        "max_attempts": 12,
+        "scoring": "0.0-1.0 partial credit",
+        "action_schema": ERTriageAction.model_json_schema(),
+    },
+    {
+        "id": "differential_triage",
+        "description": "Triage 1 tricky patient with misleading symptoms",
+        "difficulty": "hard",
+        "max_attempts": 4,
+        "scoring": "0.0-1.0 partial credit",
+        "action_schema": ERTriageAction.model_json_schema(),
+    },
+]
+
+
+@app.get("/tasks", tags=["Tasks"])
+def list_tasks():
+    """List all tasks with their action schema."""
+    return TASKS
+
+
+@app.post("/grader", tags=["Grader"])
+def grade(payload: dict):
+    """Grade a priority assignment for a given patient.
+
+    Expects: {"task_id": str, "patient_id": str, "priority": str}
+    Returns: {"score": float, "correct": bool, "ground_truth": str}
+    """
+    try:
+        from data.patients import PATIENTS
+    except ImportError:
+        from ..data.patients import PATIENTS
+
+    task_id = payload.get("task_id", "single_triage")
+    patient_id = payload.get("patient_id")
+    assigned_priority = payload.get("priority")
+
+    if not patient_id or not assigned_priority:
+        return {"error": "patient_id and priority are required", "score": 0.0}
+
+    patient = next((p for p in PATIENTS if p["patient_id"] == patient_id), None)
+    if not patient:
+        return {"error": f"Unknown patient_id: {patient_id}", "score": 0.0}
+
+    ground_truth = patient["ground_truth_priority"]
+    correct = assigned_priority == ground_truth
+    score = 0.7 if correct else 0.0
+
+    return {
+        "task_id": task_id,
+        "patient_id": patient_id,
+        "score": score,
+        "correct": correct,
+        "ground_truth": ground_truth,
+    }
+
+
 def main(host: str = "0.0.0.0", port: int = 8000):
     """
     Entry point for direct execution via uv run or python -m.
