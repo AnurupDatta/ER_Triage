@@ -113,7 +113,9 @@ def grade(payload: dict):
 
     ground_truth = patient["ground_truth_priority"]
     correct = assigned_priority == ground_truth
-    score = 0.7 if correct else 0.0
+    raw = 0.7 if correct else 0.0
+    eps = 1e-6
+    score = min(max(raw, eps), 1.0 - eps)
 
     return {
         "task_id": task_id,
