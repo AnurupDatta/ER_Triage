@@ -195,7 +195,8 @@ async def run_task(llm_client: OpenAI, env: ERTriageEnv, task_name: str) -> floa
     history: List[str] = []
     rewards: List[float] = []
     steps_taken = 0
-    score = 0.0
+    eps = 1e-6
+    score = eps  # always strictly > 0 even if nothing runs
     success = False
 
     log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
@@ -242,13 +243,12 @@ async def run_task(llm_client: OpenAI, env: ERTriageEnv, task_name: str) -> floa
                 if done:
                     break
 
-        score = sum(rewards) / max_total_reward if max_total_reward > 0 else 0.0
-        # Clamp to open interval (0, 1) — validator requires strictly between 0 and 1
-        eps = 1e-6
-        score = min(max(score, eps), 1.0 - eps)
+        raw = sum(rewards) / max_total_reward if max_total_reward > 0 else 0.0
+        score = min(max(raw, eps), 1.0 - eps)
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     finally:
+        # score is always in (0, 1) — initialized to eps, clamped above
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
     return score
@@ -273,7 +273,7 @@ async def main() -> None:
                 scores[task_name] = score
             except Exception as exc:
                 print(f"[ERROR] task={task_name} error={exc}", flush=True)
-                scores[task_name] = 0.0
+                scores[task_name] = 1e-6
             time.sleep(1)
 
         print(json.dumps({

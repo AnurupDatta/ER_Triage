@@ -79,6 +79,12 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
 
         return self._get_observation()
 
+    @staticmethod
+    def _clamp(value: float) -> float:
+        """Clamp reward/score to open interval (0, 1) as required by validator."""
+        eps = 1e-6
+        return min(max(value, eps), 1.0 - eps)
+
     def _get_observation(self) -> ERTriageObservation:
         """Constructs the observation for the current patient."""
         if self._state.current_patient_index >= len(self._state.patient_queue):
@@ -86,7 +92,7 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
                 patient_id="",
                 chief_complaint="No more patients in the queue.",
                 done=True,
-                reward=0.0,
+                reward=self._clamp(0.0),
                 available_actions=[]
             )
 
@@ -97,7 +103,7 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
             chief_complaint=patient["chief_complaint"],
             available_actions=["request_vitals", "ask_question", "assign_priority"],
             done=False,
-            reward=0.0,
+            reward=self._clamp(0.0),
         )
 
     def step(self, action: ERTriageAction) -> ERTriageObservation:
@@ -140,20 +146,15 @@ class ERTriageEnvironment(Environment[ERTriageAction, ERTriageObservation, ERTri
         if self._state.steps_taken_for_patient >= 3:
             obs.available_actions = ["assign_priority"]
 
-        obs.reward = reward
+        obs.reward = self._clamp(reward)
         obs.done = done
         return obs
 
     def _grade_priority(self, assigned_priority: str, patient: Dict) -> Tuple[float, bool]:
-        """Grades the assigned priority. Returns reward in [0, 0.7]."""
+        """Grades the assigned priority."""
         ground_truth = patient["ground_truth_priority"]
         correct = assigned_priority == ground_truth
-
-        if correct:
-            reward = 0.7
-        else:
-            reward = 0.0
-
+        reward = 0.7 if correct else 0.0
         return reward, correct
 
     @property
