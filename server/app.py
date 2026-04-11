@@ -114,7 +114,16 @@ def grade(payload: dict):
 
     ground_truth = patient["ground_truth_priority"]
     correct = assigned_priority == ground_truth
-    raw = 0.7 if correct else 0.0
+
+    # Partial credit based on priority distance
+    _levels = ["non-urgent", "urgent", "critical"]
+    _idx = {p: i for i, p in enumerate(_levels)}
+    if correct:
+        raw = 0.70
+    else:
+        distance = abs(_idx.get(ground_truth, 1) - _idx.get(assigned_priority, 1))
+        raw = 0.30 if distance == 1 else 0.05
+
     eps = 0.001
     score = min(max(raw, eps), 1.0 - eps)
 

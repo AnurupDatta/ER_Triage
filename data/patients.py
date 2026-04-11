@@ -8,10 +8,14 @@
 Synthetic patient data for the ER Triage environment.
 
 Based on the public Emergency Severity Index (ESI) handbook and vignette libraries.
+Each patient includes realistic vitals, history, and demographics to support
+bias-aware evaluation.
 """
 
 PATIENTS = [
-    # CRITICAL (ESI 1-2)
+    # =========================================================================
+    # CRITICAL (ESI 1-2) — life-threatening, immediate intervention needed
+    # =========================================================================
     {
         "patient_id": "P001",
         "chief_complaint": "Chest pain, shortness of breath",
@@ -42,8 +46,50 @@ PATIENTS = [
         "ground_truth_priority": "critical",
         "ideal_steps": 2,
     },
+    {
+        "patient_id": "P012",
+        "chief_complaint": "Sudden onset worst headache of my life",
+        "vitals": {"hr": 100, "bp": "180/110", "rr": 20, "temp": 37.0, "spo2": 97},
+        "history": "Smoker, family history of aneurysm",
+        "demographics": {"age": 52, "gender": "Female"},
+        "ground_truth_esi": 1,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P013",
+        "chief_complaint": "Difficulty breathing, wheezing badly",
+        "vitals": {"hr": 125, "bp": "140/90", "rr": 32, "temp": 37.3, "spo2": 87},
+        "history": "Severe asthma, 3 ICU admissions in past year",
+        "demographics": {"age": 19, "gender": "Male"},
+        "ground_truth_esi": 1,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P014",
+        "chief_complaint": "Unresponsive, found on the floor",
+        "vitals": {"hr": 50, "bp": "70/40", "rr": 8, "temp": 35.5, "spo2": 85},
+        "history": "Unknown — brought by paramedics",
+        "demographics": {"age": 58, "gender": "Male"},
+        "ground_truth_esi": 1,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P015",
+        "chief_complaint": "Heavy vaginal bleeding, feeling faint",
+        "vitals": {"hr": 118, "bp": "85/55", "rr": 24, "temp": 36.8, "spo2": 94},
+        "history": "8 weeks pregnant, prior ectopic pregnancy",
+        "demographics": {"age": 29, "gender": "Female"},
+        "ground_truth_esi": 2,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 2,
+    },
 
-    # URGENT (ESI 3)
+    # =========================================================================
+    # URGENT (ESI 3) — needs multiple resources, could deteriorate
+    # =========================================================================
     {
         "patient_id": "P004",
         "chief_complaint": "Headache and dizziness after falling",
@@ -64,8 +110,50 @@ PATIENTS = [
         "ground_truth_priority": "urgent",
         "ideal_steps": 2,
     },
+    {
+        "patient_id": "P016",
+        "chief_complaint": "Swollen, red, hot right knee, can't walk",
+        "vitals": {"hr": 92, "bp": "135/85", "rr": 18, "temp": 38.5, "spo2": 98},
+        "history": "Gout, diabetes type 2",
+        "demographics": {"age": 61, "gender": "Male"},
+        "ground_truth_esi": 3,
+        "ground_truth_priority": "urgent",
+        "ideal_steps": 2,
+    },
+    {
+        "patient_id": "P017",
+        "chief_complaint": "Vomiting blood, dark stools for 2 days",
+        "vitals": {"hr": 98, "bp": "110/65", "rr": 19, "temp": 37.0, "spo2": 97},
+        "history": "Chronic alcohol use, liver cirrhosis",
+        "demographics": {"age": 55, "gender": "Male"},
+        "ground_truth_esi": 3,
+        "ground_truth_priority": "urgent",
+        "ideal_steps": 2,
+    },
+    {
+        "patient_id": "P018",
+        "chief_complaint": "Right lower abdominal pain, nausea, no appetite",
+        "vitals": {"hr": 90, "bp": "125/80", "rr": 18, "temp": 38.2, "spo2": 99},
+        "history": "No surgeries, no prior episodes",
+        "demographics": {"age": 22, "gender": "Female"},
+        "ground_truth_esi": 3,
+        "ground_truth_priority": "urgent",
+        "ideal_steps": 2,
+    },
+    {
+        "patient_id": "P019",
+        "chief_complaint": "Deep laceration on forearm from kitchen knife",
+        "vitals": {"hr": 88, "bp": "130/82", "rr": 17, "temp": 37.0, "spo2": 99},
+        "history": "On warfarin for atrial fibrillation",
+        "demographics": {"age": 67, "gender": "Female"},
+        "ground_truth_esi": 3,
+        "ground_truth_priority": "urgent",
+        "ideal_steps": 2,
+    },
 
-    # NON-URGENT (ESI 4-5)
+    # =========================================================================
+    # NON-URGENT (ESI 4-5) — minor, stable, minimal resources needed
+    # =========================================================================
     {
         "patient_id": "P006",
         "chief_complaint": "Sore throat and runny nose",
@@ -96,8 +184,50 @@ PATIENTS = [
         "ground_truth_priority": "non-urgent",
         "ideal_steps": 1,
     },
+    {
+        "patient_id": "P020",
+        "chief_complaint": "Itchy rash on both arms for a week",
+        "vitals": {"hr": 72, "bp": "118/76", "rr": 15, "temp": 37.0, "spo2": 99},
+        "history": "Seasonal allergies, new laundry detergent",
+        "demographics": {"age": 35, "gender": "Female"},
+        "ground_truth_esi": 5,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P021",
+        "chief_complaint": "Earache, muffled hearing on left side",
+        "vitals": {"hr": 78, "bp": "115/72", "rr": 16, "temp": 37.3, "spo2": 99},
+        "history": "Frequent ear infections as a child",
+        "demographics": {"age": 14, "gender": "Male"},
+        "ground_truth_esi": 4,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P022",
+        "chief_complaint": "Mild low back pain after lifting furniture",
+        "vitals": {"hr": 76, "bp": "122/78", "rr": 16, "temp": 37.0, "spo2": 99},
+        "history": "Desk job, no prior back issues",
+        "demographics": {"age": 40, "gender": "Male"},
+        "ground_truth_esi": 4,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 1,
+    },
+    {
+        "patient_id": "P023",
+        "chief_complaint": "Bug bite on leg, slightly swollen",
+        "vitals": {"hr": 68, "bp": "110/68", "rr": 15, "temp": 37.0, "spo2": 100},
+        "history": "No known allergies",
+        "demographics": {"age": 8, "gender": "Female"},
+        "ground_truth_esi": 5,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 1,
+    },
 
-    # TRICKY / DIFFERENTIAL (for hard task)
+    # =========================================================================
+    # TRICKY / DIFFERENTIAL (for hard task) — misleading complaints vs vitals
+    # =========================================================================
     {
         "patient_id": "P009",
         "chief_complaint": "Mild headache, feeling a bit tired",
@@ -126,6 +256,39 @@ PATIENTS = [
         "vitals": {"hr": 88, "bp": "125/80", "rr": 18, "temp": 37.0, "spo2": 99},
         "history": "Generalized anxiety disorder, on SSRIs",
         "demographics": {"age": 32, "gender": "Female"},
+        "ground_truth_esi": 4,
+        "ground_truth_priority": "non-urgent",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
+    {
+        "patient_id": "P024",
+        "chief_complaint": "Just feeling off, a bit of nausea",
+        "vitals": {"hr": 45, "bp": "88/50", "rr": 12, "temp": 36.2, "spo2": 93},
+        "history": "On metoprolol and digoxin for atrial fibrillation",
+        "demographics": {"age": 80, "gender": "Male"},
+        "ground_truth_esi": 2,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
+    {
+        "patient_id": "P025",
+        "chief_complaint": "My child has a runny nose and won't stop crying",
+        "vitals": {"hr": 160, "bp": "75/45", "rr": 40, "temp": 39.8, "spo2": 92},
+        "history": "Born premature at 32 weeks, now 6 months old",
+        "demographics": {"age": 0.5, "gender": "Female"},
+        "ground_truth_esi": 1,
+        "ground_truth_priority": "critical",
+        "ideal_steps": 2,
+        "tricky": True,
+    },
+    {
+        "patient_id": "P026",
+        "chief_complaint": "Panic attack, can't breathe, going to die",
+        "vitals": {"hr": 95, "bp": "128/82", "rr": 22, "temp": 37.0, "spo2": 99},
+        "history": "Panic disorder, no cardiac history, ECG normal last month",
+        "demographics": {"age": 27, "gender": "Male"},
         "ground_truth_esi": 4,
         "ground_truth_priority": "non-urgent",
         "ideal_steps": 2,

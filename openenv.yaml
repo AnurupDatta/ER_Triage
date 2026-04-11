@@ -1,10 +1,12 @@
 spec_version: 1
 name: er_triage
-version: "1.0.0"
+version: "2.0.0"
 description: >
   ER Triage environment for AI agent training.
   An agent triages emergency room patients using the Emergency Severity Index (ESI),
   balancing speed and accuracy across varying difficulty levels.
+  Features 26 realistic patients, persistent observation context, and
+  partial-credit grading for near-miss diagnoses.
 
 author: "Team Attention Seekers"
 tags:
@@ -40,9 +42,9 @@ tasks:
 observation_space:
   patient_id:         "string — current patient identifier"
   chief_complaint:    "string — patient's presenting complaint"
-  vitals:             "dict — HR, BP, RR, Temp, SpO2 (after request_vitals)"
-  history:            "string — patient medical history"
-  question_answer:    "string — response to agent's question"
+  vitals:             "dict — HR, BP, RR, Temp, SpO2 (persists after request_vitals)"
+  history:            "string — patient medical history (persists after ask_question)"
+  question_answer:    "string — all Q&A responses accumulated across steps"
   available_actions:  "list — actions the agent can take next"
   reward:             "float — reward from last action"
   done:               "bool — whether episode has ended"
@@ -55,12 +57,13 @@ action_space:
 
 reward:
   type: continuous
-  range: [0.0, 1.0]
+  range: [0.001, 0.999]
   shaping:
     - "+0.20 for requesting vitals"
     - "+0.10 for asking a clarifying question"
     - "+0.70 for correct priority assignment"
-    - "+0.00 for incorrect priority assignment"
+    - "+0.30 for adjacent priority (one level off)"
+    - "+0.05 for two levels off"
 
 endpoints:
   - path: /reset
